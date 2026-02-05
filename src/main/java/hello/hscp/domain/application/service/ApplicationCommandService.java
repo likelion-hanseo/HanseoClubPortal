@@ -8,21 +8,36 @@ import hello.hscp.domain.club.repository.ClubRepository;
 import hello.hscp.global.exception.ApiException;
 import hello.hscp.global.exception.ErrorCode;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ApplicationCommandService {
 
+    // ✅ 고정 수신자(여기로만 발송)
+    private static final String NOTIFY_EMAIL = "iyeojae1@gmail.com";
+
     private final ClubRepository clubRepository;
     private final ApplicationRepository applicationRepository;
+    private final JavaMailSender mailSender;
 
     @Value("${app.application.target-club-id}")
     private Long targetClubId;
 
-    public ApplicationCommandService(ClubRepository clubRepository, ApplicationRepository applicationRepository) {
+    // ✅ 발신자(= SMTP 로그인 계정)
+    @Value("${spring.mail.username}")
+    private String fromEmail;
+
+    public ApplicationCommandService(
+            ClubRepository clubRepository,
+            ApplicationRepository applicationRepository,
+            JavaMailSender mailSender
+    ) {
         this.clubRepository = clubRepository;
         this.applicationRepository = applicationRepository;
+        this.mailSender = mailSender;
     }
 
     @Transactional
@@ -32,6 +47,31 @@ public class ApplicationCommandService {
 
         Application app = new Application(club, studentNo, name, department, age, grade, motivation);
         applicationRepository.save(app);
+
+        // ✅ 메일 실패해도 지원 저장은 유지
+        try {
+            SimpleMailMessage msg = new SimpleMailMessage();
+            msg.setFrom(fromEmail);
+            msg.setTo(NOTIFY_EMAIL);
+            msg.setSubject("멋쟁이 사자처럼 동아리 지원이 접수되었습니다.");
+            msg.setText("""
+                    - 학번 : %s
+                    - 이름 : %s
+                    - 학과 : %s
+                    - 나이 : %d
+                    - 학년 : %d
+                    """.formatted(
+                    studentNo,
+                    name,
+                    department,
+                    age,
+                    grade
+            ));
+            mailSender.send(msg);
+        } catch (Exception ignored) {
+            // 메일 실패는 무시(지원 저장 롤백 방지)
+        }
+
         return app.getId();
     }
 }
