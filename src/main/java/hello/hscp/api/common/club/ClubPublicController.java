@@ -40,7 +40,7 @@ public class ClubPublicController {
         for (Club c : clubs) {
             String coverUrl = clubQueryService.mainImageUrl(c.getId());
             grouped.get(c.getCategory()).add(new ClubListItemResponse(
-                    c.getId(), coverUrl, c.getName(), c.getSummary(), c.getCategory()
+                    c.getId(), coverUrl, c.getName(), c.getSummary()
             ));
         }
 

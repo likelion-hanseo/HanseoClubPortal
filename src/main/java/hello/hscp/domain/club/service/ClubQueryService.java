@@ -28,7 +28,7 @@ public class ClubQueryService {
     @Transactional(readOnly = true)
     public List<Club> searchPublic(String q, RecruitState state) {
         LocalDateTime now = LocalDateTime.now();
-        return clubRepository.searchPublic(q, state, now);
+        return clubRepository.searchPublic(q, state.name(), now);
     }
 
     @Transactional
