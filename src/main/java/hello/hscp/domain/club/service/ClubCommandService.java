@@ -12,7 +12,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Service
 public class ClubCommandService {
@@ -34,15 +33,14 @@ public class ClubCommandService {
             LocalDateTime recruitEndAt,
             String introduction,
             String interviewProcess,
-            MultipartFile mainImage,
-            List<MultipartFile> mediaFiles
+            MultipartFile mainImage
     ) {
         validateRecruitPeriod(recruitStartAt, recruitEndAt);
 
         Club club = new Club(name, summary, category, recruitStartAt, recruitEndAt, introduction, interviewProcess);
         clubRepository.save(club);
 
-        mediaCommandService.replaceAll(club, mainImage, mediaFiles);
+        mediaCommandService.replaceMainImage(club, mainImage);
         return club.getId();
     }
 
@@ -56,8 +54,7 @@ public class ClubCommandService {
             LocalDateTime recruitEndAt,
             String introduction,
             String interviewProcess,
-            MultipartFile mainImageOrNull,
-            List<MultipartFile> mediaFilesOrNull
+            MultipartFile mainImageOrNull
     ) {
         validateRecruitPeriod(recruitStartAt, recruitEndAt);
 
@@ -67,9 +64,7 @@ public class ClubCommandService {
         club.update(name, summary, category, recruitStartAt, recruitEndAt, introduction, interviewProcess);
 
         if (mainImageOrNull != null && !mainImageOrNull.isEmpty()) {
-            mediaCommandService.replaceAll(club, mainImageOrNull, mediaFilesOrNull);
-        } else if (mediaFilesOrNull != null && !mediaFilesOrNull.isEmpty()) {
-            mediaCommandService.replaceExtrasKeepMain(club, mediaFilesOrNull);
+            mediaCommandService.replaceMainImage(club, mainImageOrNull);
         }
     }
 

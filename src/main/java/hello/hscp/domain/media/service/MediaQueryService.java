@@ -6,8 +6,6 @@ import hello.hscp.domain.media.repository.MediaFileRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-
 @Service
 public class MediaQueryService {
 
@@ -19,13 +17,8 @@ public class MediaQueryService {
 
     @Transactional(readOnly = true)
     public String mainImageUrl(Long clubId) {
-        return mediaFileRepository.findTop1ByClub_IdAndIsMainTrueOrderByIdAsc(clubId)
+        return mediaFileRepository.findTop1ByClub_IdOrderByIdAsc(clubId)
                 .map(MediaFile::getUrl)
                 .orElse(null);
-    }
-
-    @Transactional(readOnly = true)
-    public List<MediaFile> listByClub(Long clubId) {
-        return mediaFileRepository.findByClub_IdOrderByIsMainDescIdAsc(clubId);
     }
 }

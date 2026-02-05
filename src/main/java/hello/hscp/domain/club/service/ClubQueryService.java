@@ -4,7 +4,6 @@ package hello.hscp.domain.club.service;
 import hello.hscp.domain.club.entity.Club;
 import hello.hscp.domain.club.entity.RecruitState;
 import hello.hscp.domain.club.repository.ClubRepository;
-import hello.hscp.domain.media.entity.MediaFile;
 import hello.hscp.domain.media.service.MediaQueryService;
 import hello.hscp.global.exception.ApiException;
 import hello.hscp.global.exception.ErrorCode;
@@ -42,10 +41,5 @@ public class ClubQueryService {
     @Transactional(readOnly = true)
     public String mainImageUrl(Long clubId) {
         return mediaQueryService.mainImageUrl(clubId);
-    }
-
-    @Transactional(readOnly = true)
-    public List<MediaFile> media(Long clubId) {
-        return mediaQueryService.listByClub(clubId);
     }
 }

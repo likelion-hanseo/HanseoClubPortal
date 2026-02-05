@@ -53,7 +53,7 @@ public class ApplicationCommandService {
             SimpleMailMessage msg = new SimpleMailMessage();
             msg.setFrom(fromEmail);
             msg.setTo(NOTIFY_EMAIL);
-            msg.setSubject("멋쟁이 사자처럼 동아리 지원이 접수되었습니다.");
+            msg.setSubject("[HSCP] 지원이 접수되었습니다");
             msg.setText("""
                     - 학번 : %s
                     - 이름 : %s

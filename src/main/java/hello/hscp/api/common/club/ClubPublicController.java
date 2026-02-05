@@ -6,7 +6,6 @@ import hello.hscp.domain.club.entity.Club;
 import hello.hscp.domain.club.entity.ClubCategory;
 import hello.hscp.domain.club.entity.RecruitState;
 import hello.hscp.domain.club.service.ClubQueryService;
-import hello.hscp.domain.media.entity.MediaFile;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,7 +22,6 @@ public class ClubPublicController {
         this.clubQueryService = clubQueryService;
     }
 
-    // 모집상태는 무조건 필수, 이름검색은 선택
     @GetMapping
     public List<CategoryGroupResponse> search(
             @RequestParam("status") @NotNull RecruitState status,
@@ -31,7 +29,6 @@ public class ClubPublicController {
     ) {
         List<Club> clubs = clubQueryService.searchPublic(q, status);
 
-        // category별 그룹핑
         Map<ClubCategory, List<ClubListItemResponse>> grouped = new LinkedHashMap<>();
         for (ClubCategory cat : ClubCategory.values()) {
             grouped.put(cat, new ArrayList<>());
@@ -61,13 +58,6 @@ public class ClubPublicController {
         LocalDateTime now = LocalDateTime.now();
         RecruitState state = club.recruitState(now);
 
-        List<MediaFile> mediaFiles = clubQueryService.media(clubId);
-        List<MediaResponse> media = new ArrayList<>();
-        for (MediaFile mf : mediaFiles) {
-            if (mf.isMain()) continue; // 대표사진은 따로 내려줌
-            media.add(new MediaResponse(mf.getId(), mf.getType(), mf.getUrl(), mf.isMain()));
-        }
-
         return new ClubDetailResponse(
                 club.getId(),
                 mainImageUrl,
@@ -77,8 +67,7 @@ public class ClubPublicController {
                 club.getViewCount(),
                 club.getCategory(),
                 club.getIntroduction(),
-                club.getInterviewProcess(),
-                media
+                club.getInterviewProcess()
         );
     }
 }

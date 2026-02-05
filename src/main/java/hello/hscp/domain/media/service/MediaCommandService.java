@@ -12,8 +12,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
-
 @Service
 public class MediaCommandService {
 
@@ -26,26 +24,9 @@ public class MediaCommandService {
     }
 
     @Transactional
-    public void replaceAll(Club club, MultipartFile mainImage, List<MultipartFile> mediaFiles) {
+    public void replaceMainImage(Club club, MultipartFile mainImage) {
         mediaFileRepository.deleteByClub_Id(club.getId());
-
         saveMainImage(club, mainImage);
-
-        if (mediaFiles != null) {
-            for (MultipartFile f : mediaFiles) {
-                saveExtraMedia(club, f);
-            }
-        }
-    }
-
-    @Transactional
-    public void replaceExtrasKeepMain(Club club, List<MultipartFile> mediaFiles) {
-        mediaFileRepository.deleteByClub_IdAndIsMainFalse(club.getId());
-        if (mediaFiles != null) {
-            for (MultipartFile f : mediaFiles) {
-                saveExtraMedia(club, f);
-            }
-        }
     }
 
     @Transactional
@@ -60,25 +41,7 @@ public class MediaCommandService {
 
         var stored = fileStorageClient.store(mainImage);
         mediaFileRepository.save(new MediaFile(
-                club, MediaType.IMAGE, stored.url(), stored.mimeType(), stored.sizeBytes(), true
-        ));
-    }
-
-    @Transactional
-    public void saveExtraMedia(Club club, MultipartFile file) {
-        if (file == null || file.isEmpty()) return;
-
-        String ct = file.getContentType();
-        if (ct == null) throw new ApiException(ErrorCode.INVALID_FILE, "Missing content-type");
-
-        MediaType type;
-        if (ct.startsWith("image/")) type = MediaType.IMAGE;
-        else if (ct.startsWith("video/")) type = MediaType.VIDEO;
-        else throw new ApiException(ErrorCode.INVALID_FILE, "Media must be image/* or video/*");
-
-        var stored = fileStorageClient.store(file);
-        mediaFileRepository.save(new MediaFile(
-                club, type, stored.url(), stored.mimeType(), stored.sizeBytes(), false
+                club, MediaType.IMAGE, stored.url(), stored.mimeType(), stored.sizeBytes()
         ));
     }
 }

@@ -4,8 +4,6 @@ package hello.hscp.api.common.club.response;
 import hello.hscp.domain.club.entity.ClubCategory;
 import hello.hscp.domain.club.entity.RecruitState;
 
-import java.util.List;
-
 public record ClubDetailResponse(
         Long clubId,
         String mainImageUrl,
@@ -15,6 +13,5 @@ public record ClubDetailResponse(
         long viewCount,
         ClubCategory category,
         String introduction,
-        String interviewProcess,
-        List<MediaResponse> media
+        String interviewProcess
 ) {}
