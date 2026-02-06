@@ -88,10 +88,7 @@ public class ClubCommandService {
         Club club = clubRepository.findById(clubId)
                 .orElseThrow(() -> new ApiException(ErrorCode.CLUB_NOT_FOUND));
 
-        // FK(applications.club_id) 때문에 먼저 삭제
         applicationRepository.deleteByClub_Id(clubId);
-
-        // FK(media_files.club_id) 때문에 먼저 삭제
         mediaCommandService.deleteAllByClubId(clubId);
 
         clubRepository.delete(club);

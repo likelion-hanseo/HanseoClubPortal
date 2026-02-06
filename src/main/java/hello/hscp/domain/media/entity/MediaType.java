@@ -2,5 +2,5 @@
 package hello.hscp.domain.media.entity;
 
 public enum MediaType {
-    IMAGE, VIDEO
+    IMAGE
 }

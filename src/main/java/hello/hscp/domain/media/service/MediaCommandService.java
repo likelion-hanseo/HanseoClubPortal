@@ -29,7 +29,7 @@ public class MediaCommandService {
     public void replaceAll(Club club, MultipartFile mainImage, List<MultipartFile> mediaFiles) {
         mediaFileRepository.deleteByClub_Id(club.getId());
         saveMainImage(club, mainImage);
-        saveExtraMedia(club, mediaFiles);
+        saveExtraImages(club, mediaFiles);
     }
 
     @Transactional
@@ -42,8 +42,8 @@ public class MediaCommandService {
         // main(최초 1개)만 남기고 나머지 삭제
         mediaFileRepository.deleteByClub_IdAndIdNot(clubId, keepId);
 
-        // 새 extras 저장
-        saveExtraMedia(club, mediaFiles);
+        // 새 extras 저장 (이미지만)
+        saveExtraImages(club, mediaFiles);
     }
 
     @Transactional
@@ -66,22 +66,20 @@ public class MediaCommandService {
         ));
     }
 
-    private void saveExtraMedia(Club club, List<MultipartFile> mediaFiles) {
+    private void saveExtraImages(Club club, List<MultipartFile> mediaFiles) {
         if (mediaFiles == null || mediaFiles.isEmpty()) return;
 
         for (MultipartFile f : mediaFiles) {
             if (f == null || f.isEmpty()) continue;
 
             String ct = f.getContentType();
-            if (ct == null || (!ct.startsWith("image/") && !ct.startsWith("video/"))) {
-                throw new ApiException(ErrorCode.INVALID_FILE, "mediaFiles must be image/* or video/*");
+            if (ct == null || !ct.startsWith("image/")) {
+                throw new ApiException(ErrorCode.INVALID_FILE, "mediaFiles must be image/*");
             }
-
-            MediaType type = ct.startsWith("video/") ? MediaType.VIDEO : MediaType.IMAGE;
 
             var stored = fileStorageClient.store(f);
             mediaFileRepository.save(new MediaFile(
-                    club, type, stored.url(), stored.mimeType(), stored.sizeBytes()
+                    club, MediaType.IMAGE, stored.url(), stored.mimeType(), stored.sizeBytes()
             ));
         }
     }
