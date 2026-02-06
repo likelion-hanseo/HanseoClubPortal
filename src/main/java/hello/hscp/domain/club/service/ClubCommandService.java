@@ -1,6 +1,7 @@
 // src/main/java/hello/hscp/domain/club/service/ClubCommandService.java
 package hello.hscp.domain.club.service;
 
+import hello.hscp.domain.application.repository.ApplicationRepository;
 import hello.hscp.domain.club.entity.Club;
 import hello.hscp.domain.club.entity.ClubCategory;
 import hello.hscp.domain.club.repository.ClubRepository;
@@ -19,10 +20,16 @@ public class ClubCommandService {
 
     private final ClubRepository clubRepository;
     private final MediaCommandService mediaCommandService;
+    private final ApplicationRepository applicationRepository;
 
-    public ClubCommandService(ClubRepository clubRepository, MediaCommandService mediaCommandService) {
+    public ClubCommandService(
+            ClubRepository clubRepository,
+            MediaCommandService mediaCommandService,
+            ApplicationRepository applicationRepository
+    ) {
         this.clubRepository = clubRepository;
         this.mediaCommandService = mediaCommandService;
+        this.applicationRepository = applicationRepository;
     }
 
     @Transactional
@@ -80,6 +87,9 @@ public class ClubCommandService {
     public void delete(Long clubId) {
         Club club = clubRepository.findById(clubId)
                 .orElseThrow(() -> new ApiException(ErrorCode.CLUB_NOT_FOUND));
+
+        // FK(applications.club_id) 때문에 먼저 삭제
+        applicationRepository.deleteByClub_Id(clubId);
 
         // FK(media_files.club_id) 때문에 먼저 삭제
         mediaCommandService.deleteAllByClubId(clubId);
