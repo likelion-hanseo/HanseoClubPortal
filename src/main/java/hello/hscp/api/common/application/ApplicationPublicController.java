@@ -24,8 +24,9 @@ public class ApplicationPublicController {
                 req.studentNo(),
                 req.name(),
                 req.department(),
-                req.age(),
-                req.grade(),
+                req.contact(),
+                req.applyPart(),
+                req.techStack(),
                 req.motivation()
         );
         return new SubmitApplicationResponse(id);

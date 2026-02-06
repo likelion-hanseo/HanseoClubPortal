@@ -5,7 +5,6 @@ import hello.hscp.api.clubadmin.response.ApplicantDetailResponse;
 import hello.hscp.api.clubadmin.response.ApplicantListItemResponse;
 import hello.hscp.domain.application.entity.Application;
 import hello.hscp.domain.application.service.ApplicationAdminService;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -15,9 +14,6 @@ import java.util.List;
 public class ApplicationAdminController {
 
     private final ApplicationAdminService applicationAdminService;
-
-    @Value("${app.application.target-club-id}")
-    private Long targetClubId;
 
     public ApplicationAdminController(ApplicationAdminService applicationAdminService) {
         this.applicationAdminService = applicationAdminService;
@@ -41,8 +37,9 @@ public class ApplicationAdminController {
                 a.getStudentNo(),
                 a.getName(),
                 a.getDepartment(),
-                a.getAge(),
-                a.getGrade(),
+                a.getContact(),
+                a.getApplyPart(),
+                a.getTechStack(),
                 a.getMotivation(),
                 a.getCreatedAt()
         );

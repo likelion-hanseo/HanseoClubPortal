@@ -8,7 +8,6 @@ public record ApplicantDetailResponse(
         String studentNo,
         String name,
         String department,
-        int grade,
         String contact,
         String applyPart,
         String techStack,

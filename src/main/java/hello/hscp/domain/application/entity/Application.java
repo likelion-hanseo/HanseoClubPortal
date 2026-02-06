@@ -29,9 +29,6 @@ public class Application {
     @Column(nullable = false, length = 50)
     private String department;
 
-    @Column(nullable = false)
-    private int grade;
-
     @Column(nullable = false, length = 30)
     private String contact;
 
@@ -55,7 +52,6 @@ public class Application {
             String studentNo,
             String name,
             String department,
-            int grade,
             String contact,
             String applyPart,
             String techStack,
@@ -65,7 +61,6 @@ public class Application {
         this.studentNo = studentNo;
         this.name = name;
         this.department = department;
-        this.grade = grade;
         this.contact = contact;
         this.applyPart = applyPart;
         this.techStack = techStack;

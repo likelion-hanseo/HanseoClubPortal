@@ -16,7 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class ApplicationCommandService {
 
-    // ✅ 고정 수신자(여기로만 발송)
     private static final String NOTIFY_EMAIL = "iyeojae1@gmail.com";
 
     private final ClubRepository clubRepository;
@@ -26,7 +25,6 @@ public class ApplicationCommandService {
     @Value("${app.application.target-club-id}")
     private Long targetClubId;
 
-    // ✅ 발신자(= SMTP 로그인 계정)
     @Value("${spring.mail.username}")
     private String fromEmail;
 
@@ -41,14 +39,30 @@ public class ApplicationCommandService {
     }
 
     @Transactional
-    public Long submit(String studentNo, String name, String department, int age, int grade, String motivation) {
+    public Long submit(
+            String studentNo,
+            String name,
+            String department,
+            String contact,
+            String applyPart,
+            String techStack,
+            String motivation
+    ) {
         Club club = clubRepository.findById(targetClubId)
                 .orElseThrow(() -> new ApiException(ErrorCode.CLUB_NOT_FOUND));
 
-        Application app = new Application(club, studentNo, name, department, age, grade, motivation);
+        Application app = new Application(
+                club,
+                studentNo,
+                name,
+                department,
+                contact,
+                applyPart,
+                techStack,
+                motivation
+        );
         applicationRepository.save(app);
 
-        // ✅ 메일 실패해도 지원 저장은 유지
         try {
             SimpleMailMessage msg = new SimpleMailMessage();
             msg.setFrom(fromEmail);
@@ -58,14 +72,20 @@ public class ApplicationCommandService {
                     - 학번 : %s
                     - 이름 : %s
                     - 학과 : %s
-                    - 나이 : %d
-                    - 학년 : %d
+                    - 연락처 : %s
+                    - 지원파트 : %s
+                    - 기술스택 : %s
+
+                    - 지원동기 :
+                    %s
                     """.formatted(
                     studentNo,
                     name,
                     department,
-                    age,
-                    grade
+                    contact,
+                    applyPart,
+                    techStack,
+                    motivation
             ));
             mailSender.send(msg);
         } catch (Exception ignored) {
