@@ -8,5 +8,9 @@ import java.util.Optional;
 
 public interface MediaFileRepository extends JpaRepository<MediaFile, Long> {
     Optional<MediaFile> findTop1ByClub_IdOrderByIdAsc(Long clubId);
+
     void deleteByClub_Id(Long clubId);
+
+    // main(keepId) 제외 전부 삭제
+    void deleteByClub_IdAndIdNot(Long clubId, Long keepId);
 }

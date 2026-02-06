@@ -12,6 +12,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
+
 @Service
 public class MediaCommandService {
 
@@ -24,13 +26,32 @@ public class MediaCommandService {
     }
 
     @Transactional
-    public void replaceMainImage(Club club, MultipartFile mainImage) {
+    public void replaceAll(Club club, MultipartFile mainImage, List<MultipartFile> mediaFiles) {
         mediaFileRepository.deleteByClub_Id(club.getId());
         saveMainImage(club, mainImage);
+        saveExtraMedia(club, mediaFiles);
     }
 
     @Transactional
-    public void saveMainImage(Club club, MultipartFile mainImage) {
+    public void replaceExtrasKeepMain(Club club, List<MultipartFile> mediaFiles) {
+        Long clubId = club.getId();
+        Long keepId = mediaFileRepository.findTop1ByClub_IdOrderByIdAsc(clubId)
+                .orElseThrow(() -> new ApiException(ErrorCode.INVALID_FILE, "Main image not found"))
+                .getId();
+
+        // main(최초 1개)만 남기고 나머지 삭제
+        mediaFileRepository.deleteByClub_IdAndIdNot(clubId, keepId);
+
+        // 새 extras 저장
+        saveExtraMedia(club, mediaFiles);
+    }
+
+    @Transactional
+    public void deleteAllByClubId(Long clubId) {
+        mediaFileRepository.deleteByClub_Id(clubId);
+    }
+
+    private void saveMainImage(Club club, MultipartFile mainImage) {
         if (mainImage == null || mainImage.isEmpty()) {
             throw new ApiException(ErrorCode.INVALID_FILE, "Main image is required");
         }
@@ -43,5 +64,25 @@ public class MediaCommandService {
         mediaFileRepository.save(new MediaFile(
                 club, MediaType.IMAGE, stored.url(), stored.mimeType(), stored.sizeBytes()
         ));
+    }
+
+    private void saveExtraMedia(Club club, List<MultipartFile> mediaFiles) {
+        if (mediaFiles == null || mediaFiles.isEmpty()) return;
+
+        for (MultipartFile f : mediaFiles) {
+            if (f == null || f.isEmpty()) continue;
+
+            String ct = f.getContentType();
+            if (ct == null || (!ct.startsWith("image/") && !ct.startsWith("video/"))) {
+                throw new ApiException(ErrorCode.INVALID_FILE, "mediaFiles must be image/* or video/*");
+            }
+
+            MediaType type = ct.startsWith("video/") ? MediaType.VIDEO : MediaType.IMAGE;
+
+            var stored = fileStorageClient.store(f);
+            mediaFileRepository.save(new MediaFile(
+                    club, type, stored.url(), stored.mimeType(), stored.sizeBytes()
+            ));
+        }
     }
 }

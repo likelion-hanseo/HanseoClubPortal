@@ -8,8 +8,10 @@ public record ApplicantDetailResponse(
         String studentNo,
         String name,
         String department,
-        int age,
         int grade,
+        String contact,
+        String applyPart,
+        String techStack,
         String motivation,
         LocalDateTime createdAt
 ) {}

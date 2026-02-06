@@ -30,10 +30,16 @@ public class Application {
     private String department;
 
     @Column(nullable = false)
-    private int age;
-
-    @Column(nullable = false)
     private int grade;
+
+    @Column(nullable = false, length = 30)
+    private String contact;
+
+    @Column(name = "apply_part", nullable = false, length = 50)
+    private String applyPart;
+
+    @Column(name = "tech_stack", nullable = false, length = 200)
+    private String techStack;
 
     @Lob
     @Column(name = "motivation", nullable = false)
@@ -44,13 +50,25 @@ public class Application {
 
     protected Application() {}
 
-    public Application(Club club, String studentNo, String name, String department, int age, int grade, String motivation) {
+    public Application(
+            Club club,
+            String studentNo,
+            String name,
+            String department,
+            int grade,
+            String contact,
+            String applyPart,
+            String techStack,
+            String motivation
+    ) {
         this.club = club;
         this.studentNo = studentNo;
         this.name = name;
         this.department = department;
-        this.age = age;
         this.grade = grade;
+        this.contact = contact;
+        this.applyPart = applyPart;
+        this.techStack = techStack;
         this.motivation = motivation;
     }
 

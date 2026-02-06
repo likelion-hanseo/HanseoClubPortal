@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 public class ClubCommandService {
@@ -33,14 +34,15 @@ public class ClubCommandService {
             LocalDateTime recruitEndAt,
             String introduction,
             String interviewProcess,
-            MultipartFile mainImage
+            MultipartFile mainImage,
+            List<MultipartFile> mediaFiles
     ) {
         validateRecruitPeriod(recruitStartAt, recruitEndAt);
 
         Club club = new Club(name, summary, category, recruitStartAt, recruitEndAt, introduction, interviewProcess);
         clubRepository.save(club);
 
-        mediaCommandService.replaceMainImage(club, mainImage);
+        mediaCommandService.replaceAll(club, mainImage, mediaFiles);
         return club.getId();
     }
 
@@ -54,7 +56,8 @@ public class ClubCommandService {
             LocalDateTime recruitEndAt,
             String introduction,
             String interviewProcess,
-            MultipartFile mainImageOrNull
+            MultipartFile mainImageOrNull,
+            List<MultipartFile> mediaFiles
     ) {
         validateRecruitPeriod(recruitStartAt, recruitEndAt);
 
@@ -63,8 +66,13 @@ public class ClubCommandService {
 
         club.update(name, summary, category, recruitStartAt, recruitEndAt, introduction, interviewProcess);
 
-        if (mainImageOrNull != null && !mainImageOrNull.isEmpty()) {
-            mediaCommandService.replaceMainImage(club, mainImageOrNull);
+        boolean hasMain = mainImageOrNull != null && !mainImageOrNull.isEmpty();
+        boolean hasExtras = mediaFiles != null && mediaFiles.stream().anyMatch(f -> f != null && !f.isEmpty());
+
+        if (hasMain) {
+            mediaCommandService.replaceAll(club, mainImageOrNull, mediaFiles);
+        } else if (hasExtras) {
+            mediaCommandService.replaceExtrasKeepMain(club, mediaFiles);
         }
     }
 
@@ -72,6 +80,10 @@ public class ClubCommandService {
     public void delete(Long clubId) {
         Club club = clubRepository.findById(clubId)
                 .orElseThrow(() -> new ApiException(ErrorCode.CLUB_NOT_FOUND));
+
+        // FK(media_files.club_id) 때문에 먼저 삭제
+        mediaCommandService.deleteAllByClubId(clubId);
+
         clubRepository.delete(club);
     }
 

@@ -13,6 +13,7 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
 import java.util.Set;
 
 @RestController
@@ -36,7 +37,8 @@ public class ClubAdminController {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public UpsertClubResponse create(
             @RequestPart("data") String dataJson,
-            @RequestPart("mainImage") MultipartFile mainImage
+            @RequestPart("mainImage") MultipartFile mainImage,
+            @RequestPart(value = "mediaFiles", required = false) List<MultipartFile> mediaFiles
     ) {
         ClubUpsertRequest data = parseAndValidate(dataJson);
 
@@ -48,7 +50,8 @@ public class ClubAdminController {
                 data.recruitEndAt(),
                 data.introduction(),
                 data.interviewProcess(),
-                mainImage
+                mainImage,
+                mediaFiles
         );
         return new UpsertClubResponse(clubId);
     }
@@ -57,7 +60,8 @@ public class ClubAdminController {
     public UpsertClubResponse update(
             @PathVariable Long clubId,
             @RequestPart("data") String dataJson,
-            @RequestPart(value = "mainImage", required = false) MultipartFile mainImage
+            @RequestPart(value = "mainImage", required = false) MultipartFile mainImage,
+            @RequestPart(value = "mediaFiles", required = false) List<MultipartFile> mediaFiles
     ) {
         ClubUpsertRequest data = parseAndValidate(dataJson);
 
@@ -70,7 +74,8 @@ public class ClubAdminController {
                 data.recruitEndAt(),
                 data.introduction(),
                 data.interviewProcess(),
-                mainImage
+                mainImage,
+                mediaFiles
         );
         return new UpsertClubResponse(clubId);
     }
