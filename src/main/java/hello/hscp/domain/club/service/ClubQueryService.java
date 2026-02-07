@@ -10,7 +10,7 @@ import hello.hscp.global.exception.ErrorCode;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -24,10 +24,12 @@ public class ClubQueryService {
         this.mediaQueryService = mediaQueryService;
     }
 
+    // status=null -> 전체, status=UNKNOWN -> 모집기간 null인 것만
     @Transactional(readOnly = true)
-    public List<Club> searchPublic(String q, RecruitState state) {
-        LocalDateTime now = LocalDateTime.now();
-        return clubRepository.searchPublic(q, state.name(), now);
+    public List<Club> searchPublic(String q, RecruitState status) {
+        LocalDate today = LocalDate.now();
+        String statusName = (status == null) ? null : status.name();
+        return clubRepository.searchPublic(q, statusName, today);
     }
 
     @Transactional

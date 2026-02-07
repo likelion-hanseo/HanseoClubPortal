@@ -6,10 +6,11 @@ import hello.hscp.domain.club.entity.Club;
 import hello.hscp.domain.club.entity.ClubCategory;
 import hello.hscp.domain.club.entity.RecruitState;
 import hello.hscp.domain.club.service.ClubQueryService;
-import jakarta.validation.constraints.NotNull;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 @RestController
@@ -24,7 +25,7 @@ public class ClubPublicController {
 
     @GetMapping
     public List<CategoryGroupResponse> search(
-            @RequestParam("status") @NotNull RecruitState status,
+            @RequestParam(value = "status", required = false) RecruitState status, // null이면 전체
             @RequestParam(value = "q", required = false) String q
     ) {
         List<Club> clubs = clubQueryService.searchPublic(q, status);
@@ -58,12 +59,24 @@ public class ClubPublicController {
         LocalDateTime now = LocalDateTime.now();
         RecruitState state = club.recruitState(now);
 
+        LocalDate today = now.toLocalDate();
+        LocalDate end = club.getRecruitEndAt();
+
+        Long daysLeft = null;
+        if (end != null) {
+            long d = ChronoUnit.DAYS.between(today, end);
+            daysLeft = Math.max(0, d);
+        }
+
         return new ClubDetailResponse(
                 club.getId(),
                 mainImageUrl,
                 club.getName(),
                 club.getSummary(),
+                club.getRecruitStartAt(),  // null 가능
+                club.getRecruitEndAt(),    // null 가능
                 state,
+                daysLeft,
                 club.getViewCount(),
                 club.getCategory(),
                 club.getIntroduction(),

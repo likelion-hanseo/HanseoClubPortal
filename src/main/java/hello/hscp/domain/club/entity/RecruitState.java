@@ -2,5 +2,5 @@
 package hello.hscp.domain.club.entity;
 
 public enum RecruitState {
-    PRE, OPEN, CLOSED
+    PRE, OPEN, CLOSED, UNKNOWN
 }

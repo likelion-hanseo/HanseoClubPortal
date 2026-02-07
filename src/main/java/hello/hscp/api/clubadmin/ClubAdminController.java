@@ -15,7 +15,7 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.Set;
 
 @RestController
@@ -40,14 +40,15 @@ public class ClubAdminController {
     }
 
     // =========================
-    // 글(텍스트)만: raw JSON
+    // 생성: 글만 (raw JSON)
+    // POST /api/clubadmin/clubs
     // =========================
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-    public UpsertClubResponse create(@RequestBody ClubUpsertRequest data) {
+    public UpsertClubResponse createText(@RequestBody ClubUpsertRequest data) {
         validate(data);
-        validateRecruitPeriod(data.recruitStartAt(), data.recruitEndAt());
+        validateRecruitDates(data.recruitStartAt(), data.recruitEndAt());
 
-        Club club = new Club(
+        Long clubId = clubCommandService.create(
                 data.name(),
                 data.summary(),
                 data.category(),
@@ -56,20 +57,46 @@ public class ClubAdminController {
                 data.introduction(),
                 data.interviewProcess()
         );
-        clubRepository.save(club);
-
-        return new UpsertClubResponse(club.getId());
+        return new UpsertClubResponse(clubId);
     }
 
+    // =========================
+    // 생성: 사진만 (multipart)
+    // POST /api/clubadmin/clubs
+    //  - clubId는 form-data 필드로 받음(쿼리파라미터 X)
+    // =========================
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public UpsertClubResponse uploadMainImageOnCreateEndpoint(
+            @RequestPart("clubId") Long clubId,
+            @RequestPart("mainImage") MultipartFile mainImage
+    ) {
+        if (clubId == null) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "clubId is required");
+        }
+        if (mainImage == null || mainImage.isEmpty()) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "mainImage is required");
+        }
+
+        Club club = clubRepository.findById(clubId)
+                .orElseThrow(() -> new ApiException(ErrorCode.CLUB_NOT_FOUND));
+
+        mediaCommandService.replaceAll(club, mainImage, null);
+        return new UpsertClubResponse(clubId);
+    }
+
+    // =========================
+    // 수정: 글만 (raw JSON)
+    // PUT /api/clubadmin/clubs/{clubId}
+    // =========================
     @PutMapping(value = "/{clubId}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public UpsertClubResponse updateText(
             @PathVariable Long clubId,
             @RequestBody ClubUpsertRequest data
     ) {
         validate(data);
+        validateRecruitDates(data.recruitStartAt(), data.recruitEndAt());
 
-        // 텍스트만 수정 (미디어 변경 없음)
-        clubCommandService.update(
+        clubCommandService.updateText(
                 clubId,
                 data.name(),
                 data.summary(),
@@ -77,20 +104,18 @@ public class ClubAdminController {
                 data.recruitStartAt(),
                 data.recruitEndAt(),
                 data.introduction(),
-                data.interviewProcess(),
-                null,
-                null
+                data.interviewProcess()
         );
         return new UpsertClubResponse(clubId);
     }
 
     // =========================
-    // 대표 사진 1장만: multipart + /{clubId}?upload=1
+    // 수정: 사진만 (multipart)
+    // PUT /api/clubadmin/clubs/{clubId}
     // =========================
-    @PutMapping(value = "/{clubId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, params = "upload")
+    @PutMapping(value = "/{clubId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public UpsertClubResponse updateMainImage(
             @PathVariable Long clubId,
-            @RequestParam("upload") String upload, // 존재만 강제
             @RequestPart("mainImage") MultipartFile mainImage
     ) {
         if (mainImage == null || mainImage.isEmpty()) {
@@ -100,9 +125,7 @@ public class ClubAdminController {
         Club club = clubRepository.findById(clubId)
                 .orElseThrow(() -> new ApiException(ErrorCode.CLUB_NOT_FOUND));
 
-        // 대표 1장만 운용: 기존 전부 삭제 후 mainImage 1장만 저장
         mediaCommandService.replaceAll(club, mainImage, null);
-
         return new UpsertClubResponse(clubId);
     }
 
@@ -125,9 +148,11 @@ public class ClubAdminController {
         }
     }
 
-    private void validateRecruitPeriod(LocalDateTime start, LocalDateTime end) {
-        if (start == null || end == null || !end.isAfter(start)) {
-            throw new ApiException(ErrorCode.VALIDATION_ERROR, "recruitEndAt must be after recruitStartAt");
+    // 날짜만 + null 허용
+    private void validateRecruitDates(LocalDate start, LocalDate end) {
+        if (start == null || end == null) return;          // 둘 중 하나라도 null이면 허용
+        if (end.isBefore(start)) {                         // 같은 날짜는 허용, end < start만 금지
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "recruitEndAt must be >= recruitStartAt");
         }
     }
 }

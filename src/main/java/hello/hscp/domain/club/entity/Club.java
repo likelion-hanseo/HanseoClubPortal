@@ -4,6 +4,7 @@ package hello.hscp.domain.club.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Getter
@@ -25,21 +26,21 @@ public class Club {
     @Column(nullable = false, length = 30)
     private ClubCategory category;
 
-    // 모집 기간
-    @Column(name = "recruit_start_at", nullable = false)
-    private LocalDateTime recruitStartAt;
+    // 모집 기간 (날짜만 + null 허용)
+    @Column(name = "recruit_start_at")
+    private LocalDate recruitStartAt;
 
-    @Column(name = "recruit_end_at", nullable = false)
-    private LocalDateTime recruitEndAt;
+    @Column(name = "recruit_end_at")
+    private LocalDate recruitEndAt;
 
     // 본문
     @Lob
     @Column(nullable = false)
-    private String introduction; // 특수문자/이모티콘 가능
+    private String introduction;
 
     @Lob
     @Column(name = "interview_process", nullable = false)
-    private String interviewProcess; // 특수문자/이모티콘 가능
+    private String interviewProcess;
 
     @Column(name = "view_count", nullable = false)
     private long viewCount;
@@ -56,8 +57,8 @@ public class Club {
             String name,
             String summary,
             ClubCategory category,
-            LocalDateTime recruitStartAt,
-            LocalDateTime recruitEndAt,
+            LocalDate recruitStartAt,
+            LocalDate recruitEndAt,
             String introduction,
             String interviewProcess
     ) {
@@ -87,9 +88,13 @@ public class Club {
         this.viewCount++;
     }
 
+    // null 허용 recruitStartAt/endAt 대응
     public RecruitState recruitState(LocalDateTime now) {
-        if (now.isBefore(recruitStartAt)) return RecruitState.PRE;
-        if (now.isBefore(recruitEndAt)) return RecruitState.OPEN;
+        if (recruitStartAt == null || recruitEndAt == null) return RecruitState.UNKNOWN;
+
+        LocalDate today = now.toLocalDate();
+        if (today.isBefore(recruitStartAt)) return RecruitState.PRE;
+        if (!today.isAfter(recruitEndAt)) return RecruitState.OPEN; // end 포함
         return RecruitState.CLOSED;
     }
 
@@ -97,8 +102,8 @@ public class Club {
             String name,
             String summary,
             ClubCategory category,
-            LocalDateTime recruitStartAt,
-            LocalDateTime recruitEndAt,
+            LocalDate recruitStartAt,
+            LocalDate recruitEndAt,
             String introduction,
             String interviewProcess
     ) {
