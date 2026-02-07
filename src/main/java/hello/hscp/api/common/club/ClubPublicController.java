@@ -73,8 +73,6 @@ public class ClubPublicController {
                 mainImageUrl,
                 club.getName(),
                 club.getSummary(),
-                club.getRecruitStartAt(),  // null 가능
-                club.getRecruitEndAt(),    // null 가능
                 state,
                 daysLeft,
                 club.getViewCount(),

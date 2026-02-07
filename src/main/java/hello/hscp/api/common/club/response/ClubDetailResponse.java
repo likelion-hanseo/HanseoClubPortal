@@ -4,17 +4,11 @@ package hello.hscp.api.common.club.response;
 import hello.hscp.domain.club.entity.ClubCategory;
 import hello.hscp.domain.club.entity.RecruitState;
 
-import java.time.LocalDate;
-
 public record ClubDetailResponse(
         Long clubId,
         String mainImageUrl,
         String name,
         String summary,
-
-        // 모집기간(날짜만) + null 허용
-        LocalDate recruitStartAt,
-        LocalDate recruitEndAt,
 
         RecruitState recruitState,
 
