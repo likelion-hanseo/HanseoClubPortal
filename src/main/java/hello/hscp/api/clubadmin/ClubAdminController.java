@@ -62,12 +62,11 @@ public class ClubAdminController {
 
     // =========================
     // 생성: 사진만 (multipart)
-    // POST /api/clubadmin/clubs
-    //  - clubId는 form-data 필드로 받음(쿼리파라미터 X)
+    // POST /api/clubadmin/clubs?clubId=1
     // =========================
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public UpsertClubResponse uploadMainImageOnCreateEndpoint(
-            @RequestPart("clubId") Long clubId,
+            @RequestParam("clubId") Long clubId,
             @RequestPart("mainImage") MultipartFile mainImage
     ) {
         if (clubId == null) {
@@ -111,13 +110,16 @@ public class ClubAdminController {
 
     // =========================
     // 수정: 사진만 (multipart)
-    // PUT /api/clubadmin/clubs/{clubId}
+    // PUT /api/clubadmin/clubs/main-image?clubId=1
     // =========================
-    @PutMapping(value = "/{clubId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PutMapping(value = "/main-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public UpsertClubResponse updateMainImage(
-            @PathVariable Long clubId,
+            @RequestParam("clubId") Long clubId,
             @RequestPart("mainImage") MultipartFile mainImage
     ) {
+        if (clubId == null) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "clubId is required");
+        }
         if (mainImage == null || mainImage.isEmpty()) {
             throw new ApiException(ErrorCode.VALIDATION_ERROR, "mainImage is required");
         }
