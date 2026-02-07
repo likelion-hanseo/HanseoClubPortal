@@ -1,7 +1,6 @@
 // src/main/java/hello/hscp/domain/club/service/ClubCommandService.java
 package hello.hscp.domain.club.service;
 
-import hello.hscp.domain.application.repository.ApplicationRepository;
 import hello.hscp.domain.club.entity.Club;
 import hello.hscp.domain.club.entity.ClubCategory;
 import hello.hscp.domain.club.repository.ClubRepository;
@@ -18,19 +17,15 @@ public class ClubCommandService {
 
     private final ClubRepository clubRepository;
     private final MediaCommandService mediaCommandService;
-    private final ApplicationRepository applicationRepository;
 
     public ClubCommandService(
             ClubRepository clubRepository,
-            MediaCommandService mediaCommandService,
-            ApplicationRepository applicationRepository
+            MediaCommandService mediaCommandService
     ) {
         this.clubRepository = clubRepository;
         this.mediaCommandService = mediaCommandService;
-        this.applicationRepository = applicationRepository;
     }
 
-    // 생성: 글만
     @Transactional
     public Long create(
             String name,
@@ -52,7 +47,6 @@ public class ClubCommandService {
         return club.getId();
     }
 
-    // 수정: 글만
     @Transactional
     public void updateText(
             Long clubId,
@@ -81,12 +75,11 @@ public class ClubCommandService {
         Club club = clubRepository.findById(clubId)
                 .orElseThrow(() -> new ApiException(ErrorCode.CLUB_NOT_FOUND));
 
-        applicationRepository.deleteByClub_Id(clubId);
+        // 지원(Application)은 더 이상 club과 무관하므로 삭제하지 않음
         mediaCommandService.deleteAllByClubId(clubId);
         clubRepository.delete(club);
     }
 
-    // 날짜만 + null 허용
     private void validateRecruitDates(LocalDate start, LocalDate end) {
         if (start == null || end == null) return;
         if (end.isBefore(start)) {

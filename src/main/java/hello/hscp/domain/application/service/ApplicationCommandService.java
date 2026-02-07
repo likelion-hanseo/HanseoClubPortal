@@ -3,10 +3,6 @@ package hello.hscp.domain.application.service;
 
 import hello.hscp.domain.application.entity.Application;
 import hello.hscp.domain.application.repository.ApplicationRepository;
-import hello.hscp.domain.club.entity.Club;
-import hello.hscp.domain.club.repository.ClubRepository;
-import hello.hscp.global.exception.ApiException;
-import hello.hscp.global.exception.ErrorCode;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -18,22 +14,16 @@ public class ApplicationCommandService {
 
     private static final String NOTIFY_EMAIL = "iyeojae1@gmail.com";
 
-    private final ClubRepository clubRepository;
     private final ApplicationRepository applicationRepository;
     private final JavaMailSender mailSender;
-
-    @Value("${app.application.target-club-id}")
-    private Long targetClubId;
 
     @Value("${spring.mail.username}")
     private String fromEmail;
 
     public ApplicationCommandService(
-            ClubRepository clubRepository,
             ApplicationRepository applicationRepository,
             JavaMailSender mailSender
     ) {
-        this.clubRepository = clubRepository;
         this.applicationRepository = applicationRepository;
         this.mailSender = mailSender;
     }
@@ -48,11 +38,7 @@ public class ApplicationCommandService {
             String techStack,
             String motivation
     ) {
-        Club club = clubRepository.findById(targetClubId)
-                .orElseThrow(() -> new ApiException(ErrorCode.CLUB_NOT_FOUND));
-
         Application app = new Application(
-                club,
                 studentNo,
                 name,
                 department,

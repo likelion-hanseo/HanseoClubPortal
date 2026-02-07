@@ -1,7 +1,6 @@
 // src/main/java/hello/hscp/domain/application/entity/Application.java
 package hello.hscp.domain.application.entity;
 
-import hello.hscp.domain.club.entity.Club;
 import jakarta.persistence.*;
 import lombok.Getter;
 
@@ -9,16 +8,11 @@ import java.time.LocalDateTime;
 
 @Getter
 @Entity
-@Table(name = "applications", indexes = {
-        @Index(name = "idx_app_club", columnList = "club_id")
-})
+@Table(name = "applications")
 public class Application {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @ManyToOne(fetch = FetchType.LAZY) @JoinColumn(name = "club_id", nullable = false)
-    private Club club;
 
     @Column(name = "student_no", nullable = false, length = 30)
     private String studentNo;
@@ -48,7 +42,6 @@ public class Application {
     protected Application() {}
 
     public Application(
-            Club club,
             String studentNo,
             String name,
             String department,
@@ -57,7 +50,6 @@ public class Application {
             String techStack,
             String motivation
     ) {
-        this.club = club;
         this.studentNo = studentNo;
         this.name = name;
         this.department = department;
