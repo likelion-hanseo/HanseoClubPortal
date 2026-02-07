@@ -25,25 +25,20 @@ public class MediaCommandService {
         this.mediaFileRepository = mediaFileRepository;
     }
 
+    /**
+     * 대표사진 1장만 운용:
+     * - 기존 전부 삭제
+     * - mainImage 1장 저장
+     * - mediaFiles(추가 이미지)는 더 이상 지원하지 않음
+     */
     @Transactional
     public void replaceAll(Club club, MultipartFile mainImage, List<MultipartFile> mediaFiles) {
+        if (mediaFiles != null && mediaFiles.stream().anyMatch(f -> f != null && !f.isEmpty())) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "Only mainImage is supported");
+        }
+
         mediaFileRepository.deleteByClub_Id(club.getId());
         saveMainImage(club, mainImage);
-        saveExtraImages(club, mediaFiles);
-    }
-
-    @Transactional
-    public void replaceExtrasKeepMain(Club club, List<MultipartFile> mediaFiles) {
-        Long clubId = club.getId();
-        Long keepId = mediaFileRepository.findTop1ByClub_IdOrderByIdAsc(clubId)
-                .orElseThrow(() -> new ApiException(ErrorCode.INVALID_FILE, "Main image not found"))
-                .getId();
-
-        // main(최초 1개)만 남기고 나머지 삭제
-        mediaFileRepository.deleteByClub_IdAndIdNot(clubId, keepId);
-
-        // 새 extras 저장 (이미지만)
-        saveExtraImages(club, mediaFiles);
     }
 
     @Transactional
@@ -64,23 +59,5 @@ public class MediaCommandService {
         mediaFileRepository.save(new MediaFile(
                 club, MediaType.IMAGE, stored.url(), stored.mimeType(), stored.sizeBytes()
         ));
-    }
-
-    private void saveExtraImages(Club club, List<MultipartFile> mediaFiles) {
-        if (mediaFiles == null || mediaFiles.isEmpty()) return;
-
-        for (MultipartFile f : mediaFiles) {
-            if (f == null || f.isEmpty()) continue;
-
-            String ct = f.getContentType();
-            if (ct == null || !ct.startsWith("image/")) {
-                throw new ApiException(ErrorCode.INVALID_FILE, "mediaFiles must be image/*");
-            }
-
-            var stored = fileStorageClient.store(f);
-            mediaFileRepository.save(new MediaFile(
-                    club, MediaType.IMAGE, stored.url(), stored.mimeType(), stored.sizeBytes()
-            ));
-        }
     }
 }

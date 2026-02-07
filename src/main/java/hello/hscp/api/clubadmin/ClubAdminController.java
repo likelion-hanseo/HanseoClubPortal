@@ -1,10 +1,12 @@
 // src/main/java/hello/hscp/api/clubadmin/ClubAdminController.java
 package hello.hscp.api.clubadmin;
 
-import tools.jackson.databind.json.JsonMapper;
 import hello.hscp.api.clubadmin.request.ClubUpsertRequest;
 import hello.hscp.api.clubadmin.response.UpsertClubResponse;
+import hello.hscp.domain.club.entity.Club;
+import hello.hscp.domain.club.repository.ClubRepository;
 import hello.hscp.domain.club.service.ClubCommandService;
+import hello.hscp.domain.media.service.MediaCommandService;
 import hello.hscp.global.exception.ApiException;
 import hello.hscp.global.exception.ErrorCode;
 import jakarta.validation.ConstraintViolation;
@@ -13,7 +15,7 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
+import java.time.LocalDateTime;
 import java.util.Set;
 
 @RestController
@@ -21,50 +23,52 @@ import java.util.Set;
 public class ClubAdminController {
 
     private final ClubCommandService clubCommandService;
-    private final JsonMapper objectMapper;
+    private final ClubRepository clubRepository;
+    private final MediaCommandService mediaCommandService;
     private final Validator validator;
 
     public ClubAdminController(
             ClubCommandService clubCommandService,
-            JsonMapper objectMapper,
+            ClubRepository clubRepository,
+            MediaCommandService mediaCommandService,
             Validator validator
     ) {
         this.clubCommandService = clubCommandService;
-        this.objectMapper = objectMapper;
+        this.clubRepository = clubRepository;
+        this.mediaCommandService = mediaCommandService;
         this.validator = validator;
     }
 
-    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public UpsertClubResponse create(
-            @RequestPart("data") String dataJson,
-            @RequestPart("mainImage") MultipartFile mainImage,
-            @RequestPart(value = "mediaFiles", required = false) List<MultipartFile> mediaFiles
-    ) {
-        ClubUpsertRequest data = parseAndValidate(dataJson);
+    // =========================
+    // 글(텍스트)만: raw JSON
+    // =========================
+    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
+    public UpsertClubResponse create(@RequestBody ClubUpsertRequest data) {
+        validate(data);
+        validateRecruitPeriod(data.recruitStartAt(), data.recruitEndAt());
 
-        Long clubId = clubCommandService.create(
+        Club club = new Club(
                 data.name(),
                 data.summary(),
                 data.category(),
                 data.recruitStartAt(),
                 data.recruitEndAt(),
                 data.introduction(),
-                data.interviewProcess(),
-                mainImage,
-                mediaFiles
+                data.interviewProcess()
         );
-        return new UpsertClubResponse(clubId);
+        clubRepository.save(club);
+
+        return new UpsertClubResponse(club.getId());
     }
 
-    @PutMapping(value = "/{clubId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public UpsertClubResponse update(
+    @PutMapping(value = "/{clubId}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public UpsertClubResponse updateText(
             @PathVariable Long clubId,
-            @RequestPart("data") String dataJson,
-            @RequestPart(value = "mainImage", required = false) MultipartFile mainImage,
-            @RequestPart(value = "mediaFiles", required = false) List<MultipartFile> mediaFiles
+            @RequestBody ClubUpsertRequest data
     ) {
-        ClubUpsertRequest data = parseAndValidate(dataJson);
+        validate(data);
 
+        // 텍스트만 수정 (미디어 변경 없음)
         clubCommandService.update(
                 clubId,
                 data.name(),
@@ -74,9 +78,31 @@ public class ClubAdminController {
                 data.recruitEndAt(),
                 data.introduction(),
                 data.interviewProcess(),
-                mainImage,
-                mediaFiles
+                null,
+                null
         );
+        return new UpsertClubResponse(clubId);
+    }
+
+    // =========================
+    // 대표 사진 1장만: multipart + /{clubId}?upload=1
+    // =========================
+    @PutMapping(value = "/{clubId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, params = "upload")
+    public UpsertClubResponse updateMainImage(
+            @PathVariable Long clubId,
+            @RequestParam("upload") String upload, // 존재만 강제
+            @RequestPart("mainImage") MultipartFile mainImage
+    ) {
+        if (mainImage == null || mainImage.isEmpty()) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "mainImage is required");
+        }
+
+        Club club = clubRepository.findById(clubId)
+                .orElseThrow(() -> new ApiException(ErrorCode.CLUB_NOT_FOUND));
+
+        // 대표 1장만 운용: 기존 전부 삭제 후 mainImage 1장만 저장
+        mediaCommandService.replaceAll(club, mainImage, null);
+
         return new UpsertClubResponse(clubId);
     }
 
@@ -85,18 +111,10 @@ public class ClubAdminController {
         clubCommandService.delete(clubId);
     }
 
-    private ClubUpsertRequest parseAndValidate(String dataJson) {
-        if (dataJson == null || dataJson.isBlank()) {
-            throw new ApiException(ErrorCode.VALIDATION_ERROR, "'data' is required");
+    private void validate(ClubUpsertRequest data) {
+        if (data == null) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "Request body is required");
         }
-
-        final ClubUpsertRequest data;
-        try {
-            data = objectMapper.readValue(dataJson, ClubUpsertRequest.class);
-        } catch (Exception e) {
-            throw new ApiException(ErrorCode.VALIDATION_ERROR, "Invalid JSON in 'data'");
-        }
-
         Set<ConstraintViolation<ClubUpsertRequest>> violations = validator.validate(data);
         if (!violations.isEmpty()) {
             ConstraintViolation<ClubUpsertRequest> v = violations.iterator().next();
@@ -105,6 +123,11 @@ public class ClubAdminController {
                     v.getPropertyPath() + " " + v.getMessage()
             );
         }
-        return data;
+    }
+
+    private void validateRecruitPeriod(LocalDateTime start, LocalDateTime end) {
+        if (start == null || end == null || !end.isAfter(start)) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "recruitEndAt must be after recruitStartAt");
+        }
     }
 }
