@@ -14,22 +14,22 @@ public class Application {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "student_no", nullable = false, length = 30)
+    @Column(name = "student_no")
     private String studentNo;
 
-    @Column(nullable = false, length = 50)
+    @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false, length = 50)
+    @Column(nullable = false)
     private String department;
 
-    @Column(nullable = false, length = 30)
+    @Column(nullable = false)
     private String contact;
 
-    @Column(name = "apply_part", nullable = false, length = 50)
+    @Column(name = "apply_part")
     private String applyPart;
 
-    @Column(name = "tech_stack", nullable = false, length = 200)
+    @Column(name = "tech_stack")
     private String techStack;
 
     @Lob

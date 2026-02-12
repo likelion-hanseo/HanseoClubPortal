@@ -16,14 +16,14 @@ public class Club {
     private Long id;
 
     // 대표 정보
-    @Column(nullable = false, length = 80)
+    @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false, length = 200)
+    @Column(nullable = false)
     private String summary;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 30)
+    @Column(nullable = false)
     private ClubCategory category;
 
     // 모집 기간 (날짜만 + null 허용)

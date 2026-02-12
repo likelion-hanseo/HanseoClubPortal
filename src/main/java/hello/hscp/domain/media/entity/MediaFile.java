@@ -21,13 +21,13 @@ public class MediaFile {
     private Club club;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 10)
+    @Column(nullable = false)
     private MediaType type;
 
-    @Column(nullable = false, length = 1000)
+    @Column(nullable = false)
     private String url;
 
-    @Column(name = "mime_type", nullable = false, length = 100)
+    @Column(name = "mime_type", nullable = false)
     private String mimeType;
 
     @Column(name = "size_bytes", nullable = false)
