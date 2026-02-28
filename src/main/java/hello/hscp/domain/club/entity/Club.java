@@ -35,11 +35,11 @@ public class Club {
 
     // 본문
     @Lob
-    @Column(nullable = false)
+    @Column(name = "introduction", columnDefinition = "LONGTEXT", nullable = false)
     private String introduction;
 
     @Lob
-    @Column(name = "interview_process", nullable = false)
+    @Column(name = "interview_process", columnDefinition = "LONGTEXT", nullable = false)
     private String interviewProcess;
 
     @Column(name = "view_count", nullable = false)
