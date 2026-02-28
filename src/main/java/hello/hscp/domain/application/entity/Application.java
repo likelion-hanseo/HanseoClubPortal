@@ -33,7 +33,7 @@ public class Application {
     private String techStack;
 
     @Lob
-    @Column(name = "motivation", nullable = false,columnDefinition = "TEXT")
+    @Column(name = "motivation", nullable = false,columnDefinition = "LONGTEXT")
     private String motivation;
 
     @Column(name = "created_at", nullable = false)
