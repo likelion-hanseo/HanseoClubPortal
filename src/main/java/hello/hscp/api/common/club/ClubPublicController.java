@@ -73,6 +73,7 @@ public class ClubPublicController {
                 mainImageUrl,
                 club.getName(),
                 club.getSummary(),
+                club.getEverytimeUrl(),   // ✅ 추가
                 state,
                 daysLeft,
                 club.getViewCount(),

@@ -30,6 +30,7 @@ public class ClubCommandService {
     public Long create(
             String name,
             String summary,
+            String everytimeUrl,          // ✅ 추가
             ClubCategory category,
             LocalDate recruitStartAt,
             LocalDate recruitEndAt,
@@ -39,7 +40,7 @@ public class ClubCommandService {
         validateRecruitDates(recruitStartAt, recruitEndAt);
 
         Club club = new Club(
-                name, summary, category,
+                name, summary, everytimeUrl, category, // ✅ 추가
                 recruitStartAt, recruitEndAt,
                 introduction, interviewProcess
         );
@@ -52,6 +53,7 @@ public class ClubCommandService {
             Long clubId,
             String name,
             String summary,
+            String everytimeUrl,          // ✅ 추가
             ClubCategory category,
             LocalDate recruitStartAt,
             LocalDate recruitEndAt,
@@ -64,7 +66,7 @@ public class ClubCommandService {
                 .orElseThrow(() -> new ApiException(ErrorCode.CLUB_NOT_FOUND));
 
         club.update(
-                name, summary, category,
+                name, summary, everytimeUrl, category, // ✅ 추가
                 recruitStartAt, recruitEndAt,
                 introduction, interviewProcess
         );

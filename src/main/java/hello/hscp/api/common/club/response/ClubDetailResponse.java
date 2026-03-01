@@ -10,6 +10,9 @@ public record ClubDetailResponse(
         String name,
         String summary,
 
+        // ✅ 에브리타임 URL (null 허용)
+        String everytimeUrl,
+
         RecruitState recruitState,
 
         // 상세 조회 시점 기준 모집 마감까지 남은 일수 (end null이면 null)

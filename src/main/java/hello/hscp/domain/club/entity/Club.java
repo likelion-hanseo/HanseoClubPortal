@@ -22,6 +22,10 @@ public class Club {
     @Column(nullable = false)
     private String summary;
 
+    // ✅ 에브리타임 URL (null 허용)
+    @Column(name = "everytime_url", length = 1000)
+    private String everytimeUrl;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ClubCategory category;
@@ -56,6 +60,7 @@ public class Club {
     public Club(
             String name,
             String summary,
+            String everytimeUrl,          // ✅ 추가
             ClubCategory category,
             LocalDate recruitStartAt,
             LocalDate recruitEndAt,
@@ -64,6 +69,7 @@ public class Club {
     ) {
         this.name = name;
         this.summary = summary;
+        this.everytimeUrl = everytimeUrl; // ✅ 추가
         this.category = category;
         this.recruitStartAt = recruitStartAt;
         this.recruitEndAt = recruitEndAt;
@@ -101,6 +107,7 @@ public class Club {
     public void update(
             String name,
             String summary,
+            String everytimeUrl,          // ✅ 추가
             ClubCategory category,
             LocalDate recruitStartAt,
             LocalDate recruitEndAt,
@@ -109,6 +116,7 @@ public class Club {
     ) {
         this.name = name;
         this.summary = summary;
+        this.everytimeUrl = everytimeUrl; // ✅ 추가
         this.category = category;
         this.recruitStartAt = recruitStartAt;
         this.recruitEndAt = recruitEndAt;

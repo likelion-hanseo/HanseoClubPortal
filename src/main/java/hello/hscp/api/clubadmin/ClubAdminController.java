@@ -51,6 +51,7 @@ public class ClubAdminController {
         Long clubId = clubCommandService.create(
                 data.name(),
                 data.summary(),
+                data.everytimeUrl(),          // ✅ 추가
                 data.category(),
                 data.recruitStartAt(),
                 data.recruitEndAt(),
@@ -99,6 +100,7 @@ public class ClubAdminController {
                 clubId,
                 data.name(),
                 data.summary(),
+                data.everytimeUrl(),          // ✅ 추가
                 data.category(),
                 data.recruitStartAt(),
                 data.recruitEndAt(),

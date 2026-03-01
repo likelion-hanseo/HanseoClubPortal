@@ -10,11 +10,9 @@ import java.time.LocalDate;
 public record ClubUpsertRequest(
         @NotBlank String name,
         @NotBlank String summary,
-
-        // 날짜만 받고, null 허용
+        String everytimeUrl,
         LocalDate recruitStartAt,
         LocalDate recruitEndAt,
-
         @NotNull ClubCategory category,
         @NotBlank String introduction,
         @NotBlank String interviewProcess
